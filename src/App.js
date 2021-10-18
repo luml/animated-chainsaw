@@ -1,30 +1,58 @@
+import { useState, useEffect, useCallback } from "react"
 import Search from "./components/Search"
 import AddAppointment from "./components/AddAppointment"
-import { BiCalendar, BiTrash } from "react-icons/bi"
-import appointmentList from "./data.json"
+import AppointmentInfo from "./components/AppointmentInfo"
+import { BiCalendar } from "react-icons/bi"
 
 function App() {
+  const [ appointmentList, setAppointmentList ] = useState([])
+  const [ query, setQuery ] = useState("")
+  const [ sortBy, setSortBy ] = useState('petName')
+  const [ orderBy, setOrderBy ] = useState('asc')
+
+  const fetchData = useCallback(() => {
+    fetch('./data.json')
+      .then(res => res.json())
+      .then((data) => {
+        setAppointmentList(data)
+      })
+  }, [])
+
+  const filteredAppointmentList = appointmentList.filter((item) => {
+    return (
+      item.petName.toLowerCase().includes(query.toLowerCase()) ||
+      item.ownerName.toLowerCase().includes(query.toLowerCase()) ||
+      item.aptNotes.toLowerCase().includes(query.toLowerCase())
+    )
+  }).sort((a, b) => {
+    let order = ( orderBy === 'asc' ) ? 1 : -1
+    return (
+      a[sortBy].toLowerCase() < b[sortBy].toLowerCase() ? -1 * order : 1 * order
+    )
+  })
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
   return (
     <div className="App container mx-auto mt-3 font-thin">
       <h1 className="text-5xl mb-3"><BiCalendar className="inline-block text-red-400 align-top"/>Your Appointents</h1>
       <AddAppointment />
-      <Search />
+      <Search
+        query={query}
+        onSearchQuery={(myQuery) => setQuery(myQuery)}
+        sortBy={sortBy}
+        onSortbyChange={(mySort) => setSortBy(mySort)}
+        orderBy={orderBy}
+        onOrderbyChange={(myOrder) => setOrderBy(myOrder)}
+      />
       <ul className="divide-y divide-gray-200">
-        {appointmentList
+        {filteredAppointmentList
           .map(appointment => (
-            <li className="px-3 py-3 flex items-start">
-              <button type="button"
-                className="p-1.5 mr-1.5 mt-1 rounded text-white bg-red-500 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                <BiTrash /></button>
-              <div className="flex-grow">
-                <div className="flex items-center">
-                  <span className="flex-none font-medium text-2xl text-blue-500">{appointment.petName}</span>
-                  <span className="flex-grow text-right">{appointment.aptDate}</span>
-                </div>
-                <div><b className="font-bold text-blue-500">Owner:</b> {appointment.ownerName}</div>
-                <div className="leading-tight">{appointment.aptNotes}</div>
-              </div>
-            </li>
+            <AppointmentInfo key={appointment.id} appointment={appointment} onDeleteAppointment={(appointmentId) => {
+              setAppointmentList(filteredAppointmentList.filter(item => item.id !== appointmentId))
+            }} />
           ))
         }
       </ul>
