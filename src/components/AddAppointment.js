@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { BiCalendarPlus } from "react-icons/bi";
 
-const AddAppointment = ({onAddAppoinment}) => {
+const AddAppointment = ({onAddAppoinment, lastId}) => {
 
   const [ toggleForm, setToggleForm ] = useState(false)
   const clearData = {
@@ -12,6 +12,18 @@ const AddAppointment = ({onAddAppoinment}) => {
     aptNotes: ''
   }
   const [ formData, setFormData ] = useState(clearData)
+  function formDataPublish() {
+    const appointmentInfo = {
+      id: lastId + 1,
+      ownerName: formData.ownerName,
+      petName: formData.petName,
+      aptDate: formData.aptDate + ' ' + formData.aptTime,
+      aptNotes: formData.aptNotes
+    }
+    onAddAppoinment(appointmentInfo);
+    setFormData(clearData);
+    setToggleForm(!toggleForm)
+  }
 
   return (
     <div>
@@ -83,7 +95,7 @@ const AddAppointment = ({onAddAppoinment}) => {
 
         <div className="pt-5">
           <div className="flex justify-end">
-            <button onClick={() => onAddAppoinment(formData)} type="submit" className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400">
+            <button onClick={formDataPublish} type="submit" className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-400 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400">
               Submit
             </button>
           </div>
